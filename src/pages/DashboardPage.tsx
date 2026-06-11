@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import ShoppingListForm from "../components/ShoppingListForm";
 import ShoppingLists from "../components/ShoppingLists";
 
-import { ShoppingList } from "../types/models";
+import type { ShoppingList } from "../types/models";
 import { getLists, saveLists } from "../services/storage";
 
 export default function DashboardPage() {

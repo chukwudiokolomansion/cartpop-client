@@ -4,7 +4,7 @@ import { useParams } from "react-router-dom";
 import PurchaseForm from "../components/PurchaseForm";
 import PurchaseList from "../components/PurchaseList";
 
-import { Purchase, ShoppingList } from "../types/models";
+import type { Purchase, ShoppingList } from "../types/models";
 
 import {
   getLists,

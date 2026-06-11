@@ -1,4 +1,4 @@
-import { Purchase, ShoppingList } from "../types/models";
+import type { Purchase, ShoppingList } from "../types/models";
 
 const LIST_KEY = "shopping_lists";
 const PURCHASE_KEY = "purchases";

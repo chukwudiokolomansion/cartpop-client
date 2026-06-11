@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Purchase } from "../types/models";
+import type { Purchase } from "../types/models";
 import ReceiptSummary from "../components/ReceiptSummary";
 
 interface Props {

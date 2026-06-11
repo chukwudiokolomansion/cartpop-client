@@ -1,4 +1,4 @@
-import { Purchase } from "../types/models";
+import type { Purchase } from "../types/models";
 
 interface Props {
   purchases: Purchase[];

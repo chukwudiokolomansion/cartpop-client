@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import { ShoppingList } from "../types/models";
+import type { ShoppingList } from "../types/models";
 
 interface ShoppingListsProps {
   lists: ShoppingList[];
   onDelete: (id: string) => void;
 }
 
-export default function ShoppingLists({
+function ShoppingLists({
   lists,
   onDelete,
 }: ShoppingListsProps) {
@@ -50,3 +50,4 @@ export default function ShoppingLists({
     </div>
   );
 }
+export default ShoppingLists
