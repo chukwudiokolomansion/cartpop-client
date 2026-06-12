@@ -1,9 +1,9 @@
 import { createContext, useEffect, useState } from "react"
 import { getRecipes } from "../lib/api"
 
-const CoffeeContext = createContext()
+const CartpopContext = createContext()
 
-export default function CoffeeProvider({
+export default function CartpopProvider({
   children,
 }: {
   children: React.ReactNode
@@ -15,9 +15,9 @@ export default function CoffeeProvider({
   }, [])
 
   return (
-    <CoffeeContext.Provider value={{ recipes, setRecipes }}>
+    <CartpopContext.Provider value={{ recipes, setRecipes }}>
       {children}
-    </CoffeeContext.Provider>
+    </CartpopContext.Provider>
   )
 }
-export { CoffeeContext }
+export { CartpopContext }

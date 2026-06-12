@@ -1,6 +1,8 @@
 import { useMemo } from "react";
-import type { Purchase } from "../types/models";
+
 import ReceiptSummary from "../components/ReceiptSummary";
+
+import type { Purchase } from "../types/models";
 
 interface Props {
   purchases: Purchase[];
@@ -9,23 +11,36 @@ interface Props {
 export default function ReportsPage({
   purchases,
 }: Props) {
-  const yearlyTotal = useMemo(() => {
-    return purchases.reduce(
-      (sum, p) => sum + p.totalPrice,
-      0
-    );
-  }, [purchases]);
+  const yearlyTotal = useMemo(
+    () =>
+      purchases.reduce(
+        (sum, purchase) =>
+          sum + purchase.totalPrice,
+        0
+      ),
+    [purchases]
+  );
 
   return (
-    <div>
-      <h1>Annual Receipt Report</h1>
+    <div className="page-container">
+      <div className="card">
+        <h1>Annual Receipt Report</h1>
 
-      <ReceiptSummary purchases={purchases} />
+        <ReceiptSummary
+          purchases={purchases}
+        />
 
-      <h2>
-        Year Total: $
-        {yearlyTotal.toFixed(2)}
-      </h2>
+        <div
+          style={{
+            marginTop: "20px",
+          }}
+        >
+          <h2>
+            Year Total: $
+            {yearlyTotal.toFixed(2)}
+          </h2>
+        </div>
+      </div>
     </div>
   );
 }

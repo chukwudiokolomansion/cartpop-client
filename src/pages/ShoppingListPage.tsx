@@ -4,13 +4,17 @@ import { useParams } from "react-router-dom";
 import PurchaseForm from "../components/PurchaseForm";
 import PurchaseList from "../components/PurchaseList";
 
-import type { Purchase, ShoppingList } from "../types/models";
+import type {
+  Purchase,
+  ShoppingList,
+} from "../types/models";
 
 import {
   getLists,
-  getPurchases,
-  savePurchases,
-} from "../services/storage";
+  getPurchasesByList,
+  createPurchase,
+  deletePurchase,
+} from "../services/storageService";
 
 export default function ShoppingListPage() {
   const { id } = useParams<{ id: string }>();
@@ -22,75 +26,93 @@ export default function ShoppingListPage() {
     useState<Purchase[]>([]);
 
   useEffect(() => {
-    if (!id) return;
+    const loadData = async () => {
+      if (!id) return;
 
-    const lists = getLists();
+      try {
+        const lists = await getLists();
 
-    const selectedList = lists.find(
-      (list) => list.id === id
-    );
+        const selectedList = lists.find(
+          (list) => list.id === id
+        );
 
-    if (selectedList) {
-      setShoppingList(selectedList);
-    }
+        setShoppingList(
+          selectedList ?? null
+        );
 
-    const allPurchases = getPurchases();
+        const listPurchases =
+          await getPurchasesByList(id);
 
-    const listPurchases = allPurchases.filter(
-      (purchase) =>
-        purchase.shoppingListId === id
-    );
+        setPurchases(listPurchases);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-    setPurchases(listPurchases);
+    loadData();
   }, [id]);
 
-  const handleCreatePurchase = (
+  const handleCreatePurchase = async (
     itemName: string,
     quantity: number,
     unitPrice: number
   ) => {
     if (!id) return;
 
-    const newPurchase: Purchase = {
-      id: crypto.randomUUID(),
-      shoppingListId: id,
-      itemName,
-      quantity,
-      unitPrice,
-      totalPrice: quantity * unitPrice,
-      purchaseDate: new Date().toISOString(),
-    };
+    try {
+      const purchase =
+        await createPurchase({
+          shoppingListId: id,
+          itemName,
+          quantity,
+          unitPrice,
+        });
 
-    const updatedPurchases = [
-      ...purchases,
-      newPurchase,
-    ];
-
-    setPurchases(updatedPurchases);
-
-    const allPurchases = getPurchases();
-
-    savePurchases([
-      ...allPurchases,
-      newPurchase,
-    ]);
+      setPurchases((prev) => [
+        ...prev,
+        purchase,
+      ]);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  const totalSpent = useMemo(() => {
-    return purchases.reduce(
-      (sum, purchase) =>
-        sum + purchase.totalPrice,
-      0
-    );
-  }, [purchases]);
+  const handleDeletePurchase = async (
+    purchaseId: string
+  ) => {
+    try {
+      await deletePurchase(purchaseId);
 
-  const totalItems = useMemo(() => {
-    return purchases.reduce(
-      (sum, purchase) =>
-        sum + purchase.quantity,
-      0
-    );
-  }, [purchases]);
+      setPurchases((prev) =>
+        prev.filter(
+          (purchase) =>
+            purchase.id !== purchaseId
+        )
+      );
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const totalSpent = useMemo(
+    () =>
+      purchases.reduce(
+        (sum, purchase) =>
+          sum + purchase.totalPrice,
+        0
+      ),
+    [purchases]
+  );
+
+  const totalItems = useMemo(
+    () =>
+      purchases.reduce(
+        (sum, purchase) =>
+          sum + purchase.quantity,
+        0
+      ),
+    [purchases]
+  );
 
   if (!shoppingList) {
     return (
@@ -101,70 +123,60 @@ export default function ShoppingListPage() {
   }
 
   return (
-    <div
-      style={{
-        maxWidth: "1000px",
-        margin: "0 auto",
-      }}
-    >
-      <h1>{shoppingList.name}</h1>
+    <div className="page-container">
+      <div className="card">
+        <h1>{shoppingList.name}</h1>
 
-      <p>
-        Created:
-        {" "}
-        {new Date(
-          shoppingList.createdAt
-        ).toLocaleDateString()}
-      </p>
+        <p>
+          Created{" "}
+          {new Date(
+            shoppingList.createdAt
+          ).toLocaleDateString()}
+        </p>
+      </div>
 
-      <hr />
-
-      <h2>Add Purchase</h2>
-
-      <PurchaseForm
-        shoppingListId={shoppingList.id}
-        onCreatePurchase={
-          handleCreatePurchase
-        }
-      />
-
-      <hr />
-
-      <h2>Purchase Summary</h2>
-
-      <div
-        style={{
-          display: "flex",
-          gap: "20px",
-          marginBottom: "20px",
-        }}
-      >
-        <div>
-          <strong>Total Purchases:</strong>
-          {" "}
-          {purchases.length}
+      <div className="summary-grid">
+        <div className="summary-card">
+          <h2>{purchases.length}</h2>
+          <p>Purchases</p>
         </div>
 
-        <div>
-          <strong>Total Items:</strong>
-          {" "}
-          {totalItems}
+        <div className="summary-card">
+          <h2>{totalItems}</h2>
+          <p>Items Bought</p>
         </div>
 
-        <div>
-          <strong>Total Spent:</strong>
-          {" "}
-          ${totalSpent.toFixed(2)}
+        <div className="summary-card">
+          <h2>
+            ${totalSpent.toFixed(2)}
+          </h2>
+          <p>Total Spent</p>
         </div>
       </div>
 
-      <h2>Purchases</h2>
+      <div className="glass-form">
+        <h2>Add Purchase</h2>
+
+        <PurchaseForm
+          shoppingListId={shoppingList.id}
+          onCreatePurchase={
+            handleCreatePurchase
+          }
+        />
+      </div>
+
+      <div className="section-title">
+        <h2>Purchase History</h2>
+      </div>
 
       {purchases.length === 0 ? (
-        <p>No purchases recorded yet.</p>
+        <div className="empty-state">
+          No purchases recorded yet.
+        </div>
       ) : (
         <PurchaseList
           purchases={purchases}
+          onDelete={handleDeletePurchase}
         />
       )}
     </div>
